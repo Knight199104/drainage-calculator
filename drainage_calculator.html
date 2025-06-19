@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>排水沟盖板选型计算器</title>
+    <meta charset="utf-8">
+    <style>
+        .calculator { 
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            border: 1px solid #e8e8e8;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .result { background-color: #f9f9f9; padding: 15px; margin-top: 20px; }
+        .highlight { color: #FF0036; font-weight: bold; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h3>排水沟盖板工程选型计算器</h3>
+        <div>
+            <label>适用地区：</label>
+            <select id="region">
+                <option value="">--请选择--</option>
+                <option value="全国">全国</option><option value="华东">华东</option><option value="华北">华北</option><option value="华南">华南</option><option value="西南">西南</option>
+            </select>
+        </div>
+        <div style="margin-top: 15px;">
+            <label>场地面积（m²）：</label>
+            <input type="number" id="area" min="1" placeholder="请输入场地面积">
+        </div>
+        <button onclick="calculate()" 
+                style="margin-top: 20px; background: #FF0036; color: white; border: none; padding: 10px 20px; cursor: pointer;">
+            计算推荐型号
+        </button>
+        
+        <div id="result" class="result" style="display: none;">
+            <h4>推荐方案：</h4>
+            <div id="recommendation"></div>
+        </div>
+        <div id="error" class="error" style="display: none; margin-top: 15px;"></div>
+    </div>
+
+    <script>
+        // 内嵌产品数据
+        const products = [{"\u578b\u53f7":"\u4e0d\u9508\u94a2\u76d6\u677f201E\u6b3e","\u4ea7\u54c1\u89c4\u683c\uff08\u957f*\u5bbd*\u9ad8\uff09":" 580*150*25","\u627f\u91cd\u7b49\u7ea7":"\u4e00\u822c\u884c\u4eba","\u6750\u8d28":"\u4e0d\u9508\u94a2","\u9002\u7528\u5730\u533a":"\u534e\u4e1c","\u6392\u6c34\u91cf\uff08L\/S\uff09":15,"\u957f\u5ea6(m)":0.58,"\u5bbd\u5ea6(m)":0.15},{"\u578b\u53f7":"\u4e0d\u9508\u94a2\u76d6\u677f202E\u6b3e","\u4ea7\u54c1\u89c4\u683c\uff08\u957f*\u5bbd*\u9ad8\uff09":"580*200*25","\u627f\u91cd\u7b49\u7ea7":"\u4e09\u8f6e\u7535\u74f6\u8f66","\u6750\u8d28":"\u4e0d\u9508\u94a2","\u9002\u7528\u5730\u533a":"\u534e\u5317","\u6392\u6c34\u91cf\uff08L\/S\uff09":20,"\u957f\u5ea6(m)":0.58,"\u5bbd\u5ea6(m)":0.2},{"\u578b\u53f7":"\u4e0d\u9508\u94a2\u76d6\u677f203E\u6b3e","\u4ea7\u54c1\u89c4\u683c\uff08\u957f*\u5bbd*\u9ad8\uff09":"580*250*25","\u627f\u91cd\u7b49\u7ea7":"\u5c0f\u8f7f\u8f66","\u6750\u8d28":"\u4e0d\u9508\u94a2","\u9002\u7528\u5730\u533a":"\u534e\u4e1c","\u6392\u6c34\u91cf\uff08L\/S\uff09":30,"\u957f\u5ea6(m)":0.58,"\u5bbd\u5ea6(m)":0.25},{"\u578b\u53f7":"\u590d\u5408\u76d6\u677f","\u4ea7\u54c1\u89c4\u683c\uff08\u957f*\u5bbd*\u9ad8\uff09":"500*200*30","\u627f\u91cd\u7b49\u7ea7":"\u5c0f\u8f7f\u8f66","\u6750\u8d28":"\u590d\u5408\u6750\u6599","\u9002\u7528\u5730\u533a":"\u534e\u5357","\u6392\u6c34\u91cf\uff08L\/S\uff09":20,"\u957f\u5ea6(m)":0.5,"\u5bbd\u5ea6(m)":0.2},{"\u578b\u53f7":"\u590d\u5408\u76d6\u677f","\u4ea7\u54c1\u89c4\u683c\uff08\u957f*\u5bbd*\u9ad8\uff09":"500*250*30","\u627f\u91cd\u7b49\u7ea7":"\u8f7b\u5361\uff086\u5428\u5185\uff09","\u6750\u8d28":"\u590d\u5408\u6750\u6599","\u9002\u7528\u5730\u533a":"\u897f\u5357","\u6392\u6c34\u91cf\uff08L\/S\uff09":50,"\u957f\u5ea6(m)":0.5,"\u5bbd\u5ea6(m)":0.25},{"\u578b\u53f7":"\u590d\u5408\u76d6\u677f","\u4ea7\u54c1\u89c4\u683c\uff08\u957f*\u5bbd*\u9ad8\uff09":"500*300*30","\u627f\u91cd\u7b49\u7ea7":"\u91cd\u5361\uff0814\u5428\uff09","\u6750\u8d28":"\u590d\u5408\u6750\u6599","\u9002\u7528\u5730\u533a":"\u5168\u56fd","\u6392\u6c34\u91cf\uff08L\/S\uff09":80,"\u957f\u5ea6(m)":0.5,"\u5bbd\u5ea6(m)":0.3}];
+        
+        // 计算函数
+        function calculate() {
+            // 重置显示
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('error').innerText = '';
+            
+            const region = document.getElementById('region').value;
+            const area = parseFloat(document.getElementById('area').value);
+            
+            if (!region || !area || area <= 0) {
+                showError('请完整填写地区和面积');
+                return;
+            }
+            
+            // 1. 过滤适用地区的产品
+            const filteredProducts = products.filter(p => 
+                p['适用地区'].includes(region));
+            
+            if (filteredProducts.length === 0) {
+                showError('该地区无适用产品');
+                return;
+            }
+            
+            // 2. 计算所需盖板数量（简化算法）
+            // 实际算法：根据面积和盖板覆盖率计算
+            const recommended = filteredProducts
+                .map(p => {
+                    // 计算覆盖率（单块盖板覆盖面积）
+                    const coverage = p['长度(m)'] * p['宽度(m)'];
+                    
+                    // 计算所需块数（向上取整）
+                    const blocks = Math.ceil(area / coverage);
+                    
+                    return {
+                        ...p,
+                        blocks,
+                        totalCoverage: coverage * blocks
+                    };
+                })
+                // 按覆盖效率排序（用最少块数满足需求）
+                .sort((a, b) => a.blocks - b.blocks);
+            
+            // 3. 显示最佳推荐
+            const best = recommended[0];
+            const resultHtml = `
+                <p>推荐型号：<span class="highlight">${best['型号']}</span></p>
+                <p>产品规格：${best['产品规格（长*宽*高）']}</p>
+                <p>材质：${best['材质']} | 承重等级：${best['承重等级']}</p>
+                <p>排水量：${best['排水量（L/S）']} L/S</p>
+                <p>所需数量：<span class="highlight">${best.blocks}块</span></p>
+                <p>可覆盖面积：${best.totalCoverage.toFixed(1)}m²</p>
+            `;
+            
+            document.getElementById('recommendation').innerHTML = resultHtml;
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        function showError(message) {
+            document.getElementById('error').innerText = message;
+            document.getElementById('error').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
